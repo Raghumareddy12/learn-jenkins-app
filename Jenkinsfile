@@ -32,7 +32,7 @@ pipeline {
             steps {
                 echo "Test stage"
                 sh '''
-                    if [-f build/index.html]; then
+                    if [ -f build/index.html ]; then
                     echo "build/index.html exists."
 
                     else
