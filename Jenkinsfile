@@ -41,6 +41,8 @@ pipeline {
                     fi
 
                 '''
+                 // Run unit tests
+                sh 'npm test -- --watchAll=false'
             }
         }
     }
