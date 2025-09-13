@@ -3,7 +3,7 @@ pipeline {
 
     environment {
         JEST_JUNIT_OUTPUT_DIR  = "test-results"
-        JEST_JUNIT_OUTPUT_NAME = "jest-results.xml"
+        JEST_JUNIT_OUTPUT_NAME = "junit.xml"
     }
 
     stages {
@@ -51,11 +51,8 @@ pipeline {
                         exit 1
                     fi
 
-                    # Install jest-junit reporter if missing
-                    npm install --save-dev jest-junit
-
-                    # Run Jest with JUnit reporter
-                    npm test -- --watchAll=false --testResultsProcessor=jest-junit
+                    # Run Jest (jest-junit is already configured in package.json)
+                    npm test -- --watchAll=false
                 '''
             }
         }
@@ -77,8 +74,8 @@ pipeline {
                     # Serve build folder in background
                     nohup npx serve -s build > serve.log 2>&1 &
 
-                    # Run Playwright tests with JUnit reporter
-                    npx playwright test --reporter=junit
+                    # Run Playwright tests
+                    npx playwright test 
 
                     # Kill serve after tests
                     pkill -f "npx serve"
