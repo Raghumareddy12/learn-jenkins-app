@@ -1,8 +1,13 @@
 pipeline {
     agent any
 
+    environment {
+        JEST_JUNIT_OUTPUT_DIR  = "test-results"
+        JEST_JUNIT_OUTPUT_NAME = "jest-results.xml"
+    }
+
     stages {
-        
+
         stage('Build') {
             agent {
                 docker {
@@ -30,16 +35,18 @@ pipeline {
                 }
             }
             steps {
-                echo "Running unit tests"
+                echo "Running Unit Tests"
                 sh '''
                     if [ -f build/index.html ]; then
-                      echo "✅ build/index.html exists."
+                        echo "✅ build/index.html exists."
                     else
-                      echo "❌ build/index.html missing!"
-                      exit 1
+                        echo "❌ build/index.html missing!"
+                        exit 1
                     fi
+
+                    # Run Jest tests with junit output
+                    npm test -- --watchAll=false
                 '''
-                sh 'npm test -- --watchAll=false'
             }
         }
 
@@ -53,9 +60,12 @@ pipeline {
             steps {
                 echo "Running Playwright E2E tests"
                 sh '''
+                    npm ci
                     npm install serve
-                    nohup node_modules/.bin/serve -s build &   # serve app in background
-                    npx playwright test --reporter=junit --output=test-results
+                    nohup node_modules/.bin/serve -s build > serve.log 2>&1 &
+
+                    # Run Playwright tests with junit output
+                    npx playwright test --reporter=junit,test-results/playwright-results.xml --output=test-results
                 '''
             }
         }
@@ -63,6 +73,7 @@ pipeline {
 
     post {
         always {
+            echo "Publishing test results..."
             junit 'test-results/**/*.xml'
         }
     }
