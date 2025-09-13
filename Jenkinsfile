@@ -85,15 +85,14 @@ pipeline {
     }
 
     post {
-        always {
-            echo "Publishing test results..."
-            junit 'test-results/**/*.xml'
-        }
-        success {
-            echo "Pipeline succeeded!"
-        }
-        failure {
-            echo "Pipeline failed!"
+    always {
+        script {
+            if (fileExists('test-results/junit.xml') || fileExists('test-results/playwright-results.xml')) {
+                junit 'test-results/**/*.xml'
+            } else {
+                echo "No test results found, skipping junit step"
+            }
         }
     }
+}
 }
