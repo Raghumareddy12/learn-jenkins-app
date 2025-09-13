@@ -69,12 +69,13 @@ pipeline {
                 sh '''
                     npm ci
                     npm install serve
+                    mkdir -p test-results
 
                     # Serve build folder in background
                     nohup npx serve -s build > serve.log 2>&1 &
 
                     # Run Playwright tests with JUnit reporter
-                    npx playwright test --reporter=junit=test-results/playwright-results.xml
+                    npx playwright test 
 
                     # Kill serve after tests
                     pkill -f "npx serve"
