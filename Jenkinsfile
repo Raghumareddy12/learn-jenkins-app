@@ -17,17 +17,22 @@ pipeline {
             }
             steps {
                 sh '''
+                  echo "Listing workspace..."
                   ls -la
+                  echo "Node and npm versions"
                   node --version
                   npm --version
+                  echo "Installing dependencies..."
                   npm ci
+                  echo "Building app..."
                   npm run build
+                  echo "Build complete. Listing build folder..."
                   ls -la
                 '''
             }
         }
 
-        stage('Test') {
+        stage('Unit Tests') {
             agent {
                 docker {
                     image 'node:18-alpine'
@@ -35,7 +40,7 @@ pipeline {
                 }
             }
             steps {
-                echo "Running Unit Tests"
+                echo "Running Jest Unit Tests"
                 sh '''
                     if [ -f build/index.html ]; then
                         echo "✅ build/index.html exists."
@@ -49,24 +54,28 @@ pipeline {
             }
         }
 
-        stage('E2E') {
-         agent {
-        docker {
-            image 'mcr.microsoft.com/playwright:v1.39.0-jammy'
-            reuseNode true
-        }
+        stage('E2E Tests') {
+            agent {
+                docker {
+                    image 'mcr.microsoft.com/playwright:v1.39.0-jammy'
+                    reuseNode true
+                }
             }
-        steps {
-        echo "Running Playwright E2E tests"
-        sh '''
-            npm ci
-            npm install serve
-            nohup npx serve -s build > serve.log 2>&1 &
+            steps {
+                echo "Running Playwright E2E Tests"
+                sh '''
+                    echo "Installing dependencies..."
+                    npm ci
+                    npm install serve
 
-            # Run Playwright tests and output JUnit XML
-            npx playwright test --reporter=junit=test-results/playwright-results.xml
-        '''
-    }
+                    echo "Serving the build folder in background..."
+                    nohup npx serve -s build > serve.log 2>&1 &
+
+                    echo "Running Playwright tests..."
+                    # Use reporter config in playwright.config.js
+                    npx playwright test --output=test-results
+                '''
+            }
         }
     }
 
@@ -76,4 +85,4 @@ pipeline {
             junit 'test-results/**/*.xml'
         }
     }
-} // <-- properly closes pipeline
+}
