@@ -55,7 +55,7 @@ pipeline {
                 sh '''
                     npm install serve
                     nohup node_modules/.bin/serve -s build &   # serve app in background
-                    npx playwright test
+                    npx playwright test --reporter=junit --output=test-results
                 '''
             }
         }
@@ -63,7 +63,7 @@ pipeline {
 
     post {
         always {
-            junit 'test-results/junit.xml'
+            junit 'test-results/**/*.xml'
         }
     }
 }
