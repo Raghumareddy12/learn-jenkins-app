@@ -51,24 +51,24 @@ pipeline {
         }
 
         stage('E2E') {
-            agent {
-                docker {
-                    image 'mcr.microsoft.com/playwright:v1.39.0-jammy'
-                    reuseNode true
-                }
-            }
-            steps {
-                echo "Running Playwright E2E tests"
-                sh '''
-                    npm ci
-                    npm install serve
-                    nohup node_modules/.bin/serve -s build > serve.log 2>&1 &
-
-                    # Run Playwright tests with junit output
-                    npx playwright test --reporter=junit,test-results/playwright-results.xml --output=test-results
-                '''
-            }
+    agent {
+        docker {
+            image 'mcr.microsoft.com/playwright:v1.39.0-jammy'
+            reuseNode true
         }
+    }
+    steps {
+        echo "Running Playwright E2E tests"
+        sh '''
+            npm ci
+            npm install serve
+            nohup node_modules/.bin/serve -s build > serve.log 2>&1 &
+
+            # Correct reporter syntax
+            npx playwright test --reporter=junit=junit.xml --output=test-results
+            mv junit.xml test-results/playwright-results.xml
+        '''
+    }
     }
 
     post {
