@@ -11,7 +11,6 @@ pipeline {
                 }
             }
             steps {
-                
                 sh '''
                   ls -la
                   node --version
@@ -20,11 +19,10 @@ pipeline {
                   npm run build
                   ls -la
                 '''
-
             }
-            
         }
-        stage ('Test') {
+
+        stage('Test') {
             agent {
                 docker {
                     image 'node:18-alpine'
@@ -32,45 +30,40 @@ pipeline {
                 }
             }
             steps {
-                echo "Test stage"
+                echo "Running unit tests"
                 sh '''
                     if [ -f build/index.html ]; then
-                    echo "build/index.html exists."
-
+                      echo "✅ build/index.html exists."
                     else
-                    echo "build/index.html missing!"
-                    exit 1
+                      echo "❌ build/index.html missing!"
+                      exit 1
                     fi
-
                 '''
-                 // Run unit tests
                 sh 'npm test -- --watchAll=false'
             }
         }
-        stage ('E2E') {
+
+        stage('E2E') {
             agent {
                 docker {
-                    image: 'mcr.microsoft.com/playwright:v1.55.0-jammy'
+                    image 'mcr.microsoft.com/playwright:v1.55.0-jammy'
                     reuseNode true
                 }
             }
             steps {
-                echo "Test stage"
+                echo "Running Playwright E2E tests"
                 sh '''
                     npm install serve
-                    node_modules/.bin/serve -s build
+                    nohup node_modules/.bin/serve -s build &   # serve app in background
                     npx playwright test
-
                 '''
-                 // Run unit tests
-                sh 'npm test -- --watchAll=false'
             }
         }
     }
+
     post {
         always {
             junit 'test-results/junit.xml'
         }
     }
 }
-
