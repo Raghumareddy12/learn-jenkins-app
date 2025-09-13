@@ -51,6 +51,9 @@ pipeline {
                         exit 1
                     fi
 
+                    # Install jest-junit reporter if missing
+                    npm install --save-dev jest-junit
+
                     # Run Jest with JUnit reporter
                     npm test -- --watchAll=false --testResultsProcessor=jest-junit
                 '''
@@ -75,7 +78,7 @@ pipeline {
                     nohup npx serve -s build > serve.log 2>&1 &
 
                     # Run Playwright tests with JUnit reporter
-                    npx playwright test --reporter=junit=test-results/playwright-results.xml
+                    npx playwright test --reporter=junit
 
                     # Kill serve after tests
                     pkill -f "npx serve"
@@ -87,7 +90,7 @@ pipeline {
     post {
         always {
             echo "Publishing test results..."
-            junit allowEmptyResults: true, testResults: 'test-results/**/*.xml'
+            junit 'test-results/**/*.xml'
         }
         success {
             echo "Pipeline succeeded!"
