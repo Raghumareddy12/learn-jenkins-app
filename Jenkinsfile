@@ -8,6 +8,12 @@ pipeline {
 
     stages {
 
+        stage('Checkout') {
+            steps {
+                checkout scm
+            }
+        }
+
         stage('Build') {
             agent {
                 docker {
@@ -16,18 +22,14 @@ pipeline {
                 }
             }
             steps {
+                echo "Installing dependencies and building app..."
                 sh '''
-                  echo "Listing workspace..."
-                  ls -la
-                  echo "Node and npm versions"
-                  node --version
-                  npm --version
-                  echo "Installing dependencies..."
-                  npm ci
-                  echo "Building app..."
-                  npm run build
-                  echo "Build complete. Listing build folder..."
-                  ls -la
+                    ls -la
+                    node --version
+                    npm --version
+                    npm ci
+                    npm run build
+                    ls -la build
                 '''
             }
         }
@@ -49,6 +51,7 @@ pipeline {
                         exit 1
                     fi
 
+                    # Run Jest with JUnit reporter
                     npm test -- --watchAll=false
                 '''
             }
@@ -64,16 +67,17 @@ pipeline {
             steps {
                 echo "Running Playwright E2E Tests"
                 sh '''
-                    echo "Installing dependencies..."
                     npm ci
                     npm install serve
 
-                    echo "Serving the build folder in background..."
+                    # Serve build folder in background
                     nohup npx serve -s build > serve.log 2>&1 &
 
-                    echo "Running Playwright tests..."
-                    # Use reporter config in playwright.config.js
-                    npx playwright test --output=test-results
+                    # Run Playwright tests with JUnit reporter
+                    npx playwright test --reporter=junit=test-results/playwright-results.xml
+
+                    # Kill serve after tests
+                    pkill -f "npx serve"
                 '''
             }
         }
@@ -83,6 +87,12 @@ pipeline {
         always {
             echo "Publishing test results..."
             junit 'test-results/**/*.xml'
+        }
+        success {
+            echo "Pipeline succeeded!"
+        }
+        failure {
+            echo "Pipeline failed!"
         }
     }
 }
