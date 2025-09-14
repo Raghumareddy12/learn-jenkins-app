@@ -17,7 +17,7 @@ pipeline {
             }
             steps {
                 sh '''
-                echo 'small change'
+                    echo 'small change'
                     ls -la
                     node --version
                     npm --version
@@ -37,7 +37,6 @@ pipeline {
                             reuseNode true
                         }
                     }
-
                     steps {
                         sh '''
                             npm test
@@ -50,16 +49,13 @@ pipeline {
                     }
                 }
 
-                stage('E2E')
+                stage('E2E') {
                     agent {
                         docker {
                             image 'mcr.microsoft.com/playwright:v1.39.0-jammy'
                             reuseNode true
                         }
                     }
-                    
-
-
                     steps {
                         sh '''
                             npm install serve
@@ -68,7 +64,6 @@ pipeline {
                             npx playwright test --reporter=html
                         '''
                     }
-
                     post {
                         always {
                             publishHTML([
@@ -108,7 +103,8 @@ pipeline {
                 '''
             }
         }
-        stage('E2E') {
+
+        stage('E2E After Deploy') {
             agent {
                 docker {
                     image 'mcr.microsoft.com/playwright:v1.39.0-jammy'
@@ -116,15 +112,13 @@ pipeline {
                 }
             }
             environment {
-                        CI_ENVIRONMENT_URL= 'https://amazing-begonia-e0cdde.netlify.app'
-                    }
-
+                CI_ENVIRONMENT_URL = 'https://amazing-begonia-e0cdde.netlify.app'
+            }
             steps {
                 sh '''
-                 npx playwright test --reporter=html
+                    npx playwright test --reporter=html
                 '''
             }
-
             post {
                 always {
                     publishHTML([
@@ -139,7 +133,5 @@ pipeline {
                 }
             }
         }
-
     }
-
 }
