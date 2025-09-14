@@ -84,7 +84,7 @@ pipeline {
                 }
             }
             steps {
-                sh '''
+                 sh '''
             echo "Installing Netlify CLI..."
             npm install netlify-cli
             node_modules/.bin/netlify --version
@@ -92,7 +92,7 @@ pipeline {
             node_modules/.bin/netlify status
             echo "Deploying prebuilt folder to Netlify..."
             export NETLIFY_AUTH_TOKEN=$NETLIFY_AUTH_TOKEN
-            node_modules/.bin/netlify deploy --dir=build --prod --skip-build --message "Jenkins CI deploy"
+            node_modules/.bin/netlify deploy --dir=build --prod --build false --message "Jenkins CI deploy"
         '''
             }
         }
