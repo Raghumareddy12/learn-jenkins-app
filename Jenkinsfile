@@ -3,12 +3,11 @@ pipeline {
 
     environment {
         NETLIFY_SITE_ID = 'a896324c-6076-4960-a7cc-7aaa67476c9f'
-        NETLIFY_AUTH_TOKEN = credentials ('netlify-token')
-           }
+        NETLIFY_AUTH_TOKEN = credentials('netlify-token')
+    }
 
     stages {
-        
-        
+
         stage('Build') {
             agent {
                 docker {
@@ -27,21 +26,21 @@ pipeline {
                 '''
             }
         }
-        
-        stage ('tests') {
+
+        stage('Tests') {
             parallel {
-                
-                stage('unit Test') {
+                stage('Unit tests') {
                     agent {
                         docker {
                             image 'node:18-alpine'
                             reuseNode true
                         }
                     }
+
                     steps {
                         sh '''
-                             #test -f build/index.html
-                             npm test
+                            #test -f build/index.html
+                            npm test
                         '''
                     }
                     post {
@@ -58,31 +57,26 @@ pipeline {
                             reuseNode true
                         }
                     }
+
                     steps {
                         sh '''
                             npm install serve
                             node_modules/.bin/serve -s build &
                             sleep 10
-                            npx playwright test --reporter=html
+                            npx playwright test  --reporter=html
                         '''
                     }
+
                     post {
                         always {
-                            publishHTML([
-                                        allowMissing: false,
-                                        alwaysLinkToLastBuild: false,
-                                        keepAll: true,
-                                        reportDir: 'playwright-report',
-                                        reportFiles: 'index.html',
-                                        reportName: 'Playwright HTML Report',
-                                        useWrapperFileDirectly: true
-                                        ])
+                            publishHTML([allowMissing: false, alwaysLinkToLastBuild: false, keepAll: false, reportDir: 'playwright-report', reportFiles: 'index.html', reportName: 'Playwright HTML Report', reportTitles: '', useWrapperFileDirectly: true])
                         }
                     }
                 }
             }
         }
-                stage('Deploy') {
+
+        stage('Deploy') {
             agent {
                 docker {
                     image 'node:18-alpine'
@@ -97,7 +91,7 @@ pipeline {
                     node_modules/.bin/netlify status
                     node_modules/.bin/netlify deploy --dir=build --prod
                 '''
-                    }
+            }
         }
     }
 }
