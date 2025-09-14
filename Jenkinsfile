@@ -85,12 +85,15 @@ pipeline {
             }
             steps {
                 sh '''
-                    npm install netlify-cli
-                    node_modules/.bin/netlify --version
-                    echo "Deploying to production. Site ID: $NETLIFY_SITE_ID"
-                    node_modules/.bin/netlify status
-                    node_modules/.bin/netlify deploy --dir=build --prod
-                '''
+            echo "Installing Netlify CLI..."
+            npm install netlify-cli
+            node_modules/.bin/netlify --version
+            echo "Deploying to production. Site ID: $NETLIFY_SITE_ID"
+            node_modules/.bin/netlify status
+            echo "Deploying prebuilt folder to Netlify..."
+            export NETLIFY_AUTH_TOKEN=$NETLIFY_AUTH_TOKEN
+            node_modules/.bin/netlify deploy --dir=build --prod --skip-build --message "Jenkins CI deploy"
+        '''
             }
         }
     }
