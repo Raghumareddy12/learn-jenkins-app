@@ -50,13 +50,15 @@ pipeline {
                     }
                 }
 
-                stage('E2E') {
+                stage('E2E')
                     agent {
                         docker {
                             image 'mcr.microsoft.com/playwright:v1.39.0-jammy'
                             reuseNode true
                         }
                     }
+                    
+
 
                     steps {
                         sh '''
@@ -75,7 +77,7 @@ pipeline {
                                 keepAll: false,
                                 reportDir: 'playwright-report',
                                 reportFiles: 'index.html',
-                                reportName: 'Playwright HTML Report',
+                                reportName: 'Playwright Local',
                                 useWrapperFileDirectly: true
                             ])
                         }
@@ -106,5 +108,38 @@ pipeline {
                 '''
             }
         }
+        stage('E2E') {
+            agent {
+                docker {
+                    image 'mcr.microsoft.com/playwright:v1.39.0-jammy'
+                    reuseNode true
+                }
+            }
+            environment {
+                        CI_ENVIRONMENT_URL= 'https://amazing-begonia-e0cdde.netlify.app'
+                    }
+
+            steps {
+                sh '''
+                 npx playwright test --reporter=html
+                '''
+            }
+
+            post {
+                always {
+                    publishHTML([
+                        allowMissing: false,
+                        alwaysLinkToLastBuild: false,
+                        keepAll: false,
+                        reportDir: 'playwright-report',
+                        reportFiles: 'index.html',
+                        reportName: 'Playwright E2E',
+                        useWrapperFileDirectly: true
+                    ])
+                }
+            }
+        }
+
     }
+
 }
