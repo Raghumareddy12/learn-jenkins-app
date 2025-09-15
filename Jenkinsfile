@@ -99,10 +99,11 @@ pipeline {
 
                     echo "Deploying prebuilt folder to Netlify..."
                     export NETLIFY_AUTH_TOKEN=$NETLIFY_AUTH_TOKEN
-                    node_modules/.bin/netlify deploy --dir=build 
+                    node_modules/.bin/netlify deploy --dir=build
                 '''
             }
         }
+
         stage('Deploy prod') {
             agent {
                 docker {
@@ -126,7 +127,7 @@ pipeline {
             }
         }
 
-        stage('prod E2E')
+        stage('prod E2E') {
             agent {
                 docker {
                     image 'mcr.microsoft.com/playwright:v1.39.0-jammy'
