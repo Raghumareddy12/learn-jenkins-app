@@ -81,7 +81,29 @@ pipeline {
             }
         }
 
-        stage('Deploy') {
+        stage('Deploy staging') {
+            agent {
+                docker {
+                    image 'node:18-alpine'
+                    reuseNode true
+                }
+            }
+            steps {
+                sh '''
+                    echo "Installing Netlify CLI..."
+                    npm install netlify-cli
+                    node_modules/.bin/netlify --version
+
+                    echo "Deploying to staging. Site ID: $NETLIFY_SITE_ID"
+                    node_modules/.bin/netlify status
+
+                    echo "Deploying prebuilt folder to Netlify..."
+                    export NETLIFY_AUTH_TOKEN=$NETLIFY_AUTH_TOKEN
+                    node_modules/.bin/netlify deploy --dir=build 
+                '''
+            }
+        }
+        stage('Deploy prod') {
             agent {
                 docker {
                     image 'node:18-alpine'
@@ -104,7 +126,7 @@ pipeline {
             }
         }
 
-        stage('E2E After Deploy') {
+        stage('prod E2E')
             agent {
                 docker {
                     image 'mcr.microsoft.com/playwright:v1.39.0-jammy'
