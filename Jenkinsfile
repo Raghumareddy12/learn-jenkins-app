@@ -99,7 +99,7 @@ pipeline {
 
                     echo "Deploying prebuilt folder to Netlify..."
                     export NETLIFY_AUTH_TOKEN=$NETLIFY_AUTH_TOKEN
-                    node_modules/.bin/netlify deploy --dir=build --message "Jenkins CI staging deploy" --alias staging --prodIfUnlocked --no-build
+                    node_modules/.bin/netlify deploy --dir=build --message "Jenkins CI staging deploy" --alias staging --no-build
                 '''
             }
         }
