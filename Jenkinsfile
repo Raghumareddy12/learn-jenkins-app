@@ -89,22 +89,18 @@ pipeline {
         stage('Deploy staging') {
             agent {
                 docker {
-                    image 'node:18-alpine'
+                    image 'my-playwright'
                     reuseNode true
                 }
             }
             steps {
                 sh '''
-                    echo "Installing Netlify CLI..."
-                    npm install netlify-cli
-                    node_modules/.bin/netlify --version
-
+                    netlify --version
                     echo "Deploying to staging. Site ID: $NETLIFY_SITE_ID"
-                    node_modules/.bin/netlify status
-
+                    netlify status
                     echo "Deploying prebuilt folder to Netlify..."
                     export NETLIFY_AUTH_TOKEN=$NETLIFY_AUTH_TOKEN
-                    node_modules/.bin/netlify deploy --dir=build --message "Jenkins CI staging deploy" --alias staging --no-build
+                    netlify deploy --dir=build --message "Jenkins CI staging deploy" --alias staging --no-build
                 '''
             }
         }
@@ -112,22 +108,19 @@ pipeline {
         stage('Deploy prod') {
             agent {
                 docker {
-                    image 'node:18-alpine'
+                    image 'my-playwright'
                     reuseNode true
                 }
             }
             steps {
                 sh '''
-                    echo "Installing Netlify CLI..."
-                    npm install netlify-cli
-                    node_modules/.bin/netlify --version
-
+                    node --version
+                    netlify --version
                     echo "Deploying to production. Site ID: $NETLIFY_SITE_ID"
-                    node_modules/.bin/netlify status
-
+                    netlify status
                     echo "Deploying prebuilt folder to Netlify..."
                     export NETLIFY_AUTH_TOKEN=$NETLIFY_AUTH_TOKEN
-                    node_modules/.bin/netlify deploy --dir=build --prod --no-build --message "Jenkins CI deploy"
+                    netlify deploy --dir=build --prod --no-build --message "Jenkins CI deploy"
                 '''
             }
         }
